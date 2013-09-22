@@ -5,7 +5,7 @@ class Database
     
     public function __construct($db_name = null) {      
         
-        $db_name = empty($db_name) ? '799180_fastfandemo_2' : $db_name;
+        $db_name = empty($db_name) ? 'MNDigital_Feed' : $db_name;
         echo 'connecting to: '.$db_name.chr(10);
         
         $this->db = new mysqli(DBASE_HOST, DBASE_USER, DBASE_PWD, DBASE_NAME);

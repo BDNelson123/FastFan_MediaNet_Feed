@@ -5,24 +5,8 @@ define("PROJECT_VERSION", "2.0b");
 
 $mnDb = false;
 
-$hostname = gethostname();
-
-if ($hostname == "lumair.local") {
-    define('DEPLOYMENT', "scott");
-} elseif ($hostname == "zBook"  ||  $hostname == "zbook") {
-    define('DEPLOYMENT', "zbook");
-} elseif ($hostname == "zBook.local"  ||  $hostname == "zbook.local") {
-    define('DEPLOYMENT', "zbook");
-} elseif ($hostname == "marco-fastfan") {
-    define('DEPLOYMENT', "marco");
-} elseif ($hostname == "BenTest") {
-    define('DEPLOYMENT', "BenTest");
-} else {
-    define('DEPLOYMENT', "live");
-}
-
 // define('DBASE_NAME', "fastfan_full_feeds");
-define('DBASE_NAME', "799180_fastfandemo_2");
+define('DBASE_NAME', "MNDigital_Feed");
 define('DBASE_HOST', "localhost");
 define('DBASE_PORT', 3306);
 define('DBASE_USER', "root");
