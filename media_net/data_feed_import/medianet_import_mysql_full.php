@@ -924,7 +924,7 @@ class MediaNet_Import extends DataImport {
     $this->db = new Database($full_feed ? 'fastfan_full_feeds' : null);            
 
     // This is the full feed import for radio
-    $this->current_file = 'media_net/data_feed_import/daily_incremental_files/us/DMUS-FULL-Sat-Jul-13-11-07-00-PST-2013-A-MV-C-1518.xml'; 
+    $this->current_file = 'media_net/data_feed_import/daily_incremental_files/us/DMUS-FULL-Fri-Sep-13-07-19-48-PST-2013-A-MV-C-1593.xml'; 
     $this->current_feed_name = 'us';     
 
     $this->genreimport($this->current_feed_name);
