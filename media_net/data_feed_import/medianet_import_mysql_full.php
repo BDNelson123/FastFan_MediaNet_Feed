@@ -927,10 +927,10 @@ class MediaNet_Import extends DataImport {
     $this->current_file = 'media_net/data_feed_import/daily_incremental_files/us/DMUS-FULL-Fri-Sep-13-07-19-48-PST-2013-A-MV-C-1593.xml'; 
     $this->current_feed_name = 'us';     
 
-    $this->genreimport($this->current_feed_name);
-    $this->artistimport($this->current_feed_name);
-    $this->albumtrackimport($this->current_feed_name);
-    $this->labelimport($this->current_feed_name);
+    // $this->genreimport($this->current_feed_name);
+    // $this->artistimport($this->current_feed_name);
+    // $this->albumtrackimport($this->current_feed_name);
+    // $this->labelimport($this->current_feed_name);
     $this->rankingupdate($this->current_feed_name);
     $this->albumTrackGenreUpdate($this->current_feed_name);
     $this->albumTrackAidUpdate($this->current_feed_name);
