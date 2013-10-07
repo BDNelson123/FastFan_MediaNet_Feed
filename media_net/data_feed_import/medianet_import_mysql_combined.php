@@ -178,7 +178,7 @@ class MediaNet_Import extends DataImport {
       $sql = 
       "
       INSERT IGNORE mndigital_artist_$feed
-        (bid, AmgId, Name, SortName, ArtistCategory, timestamp, CreatedDate, LastUpdatedDate)
+        (artist_id, AmgId, Name, SortName, ArtistCategory, timestamp, CreatedDate, LastUpdatedDate)
       values 
         ($Id, '$AmgId', '$Name', '$SortName', '$ArtistCategory', $this->last_timestamp, '$CreatedDate', '$LastUpdatedDate')
       ON DUPLICATE KEY UPDATE
@@ -330,7 +330,7 @@ class MediaNet_Import extends DataImport {
       UPDATE 
         mndigital_albumtrack_$feed
       SET 
-        bid = $ArtistId
+        artist_id = $ArtistId
       WHERE 
         atid = $CompId
       ";
@@ -486,7 +486,7 @@ class MediaNet_Import extends DataImport {
       UPDATE 
         mndigital_albumtrack_$feed
       SET 
-        aid = $ParentCompId
+        album_id = $ParentCompId
       WHERE
         CompTypeId = 3
         AND
@@ -539,7 +539,7 @@ class MediaNet_Import extends DataImport {
         SET 
           PopularityRanking = $Popularity
         WHERE 
-          bid = $ID
+          artist_id = $ID
         ";
 
         $this->db->execute($sql2);                    
@@ -558,30 +558,30 @@ class MediaNet_Import extends DataImport {
       "
       INSERT IGNORE albums 
 	    (
-	    aid, 
-	    bid, 
-	    album,
-	    artist,
+	    album_id, 
+	    artist_id, 
+	    album_name,
+	    artist_name,
 	    releaseDate 
 	    )
       SELECT 
 	      mnatus.atid, 
-	      mnatus.bid, 
+	      mnatus.artist_id, 
 	      mnatus.title,
 	      mnaus.Name,
 	      mnatus.ReleaseDate
       FROM 
         mndigital_albumtrack_us mnatus
       INNER JOIN 
-	      mndigital_artist_us mnaus on mnatus.bid = mnaus.bid
+	      mndigital_artist_us mnaus on mnatus.artist_id = mnaus.artist_id
       WHERE
 	      mnatus.CompTypeId = 2
 	    AND
 	      mnatus.timestamp = $this->last_timestamp
       ON DUPLICATE KEY UPDATE 
-	      bid = mnatus.bid,
-	      album = mnatus.title,
-	      artist = mnaus.Name,
+	      artist_id = mnatus.artist_id,
+	      album_name = mnatus.title,
+	      artist_name = mnaus.Name,
 	      releaseDate = mnatus.ReleaseDate
       ";                
         
@@ -595,13 +595,13 @@ class MediaNet_Import extends DataImport {
     "
     INSERT IGNORE artists
     (
-      bid, 
-      artist,
+      artist_id, 
+      artist_name,
       ranking,
       highestRanking
     )
     SELECT 
-      mnaus.bid,
+      mnaus.artist_id,
       mnaus.Name, 
       mnaus.PopularityRanking,
       mnaus.PopularityRanking
@@ -610,7 +610,7 @@ class MediaNet_Import extends DataImport {
     WHERE
       mnaus.timestamp = $this->last_timestamp
     ON DUPLICATE KEY UPDATE 
-      artist = mnaus.Name,
+      artist_name = mnaus.Name,
       ranking = mnaus.PopularityRanking,
       highestRanking = IF((highestRanking < mnaus.PopularityRanking), highestRanking, mnaus.PopularityRanking)
     ";                
@@ -625,299 +625,30 @@ class MediaNet_Import extends DataImport {
       "
       INSERT IGNORE tracks
 	    (
-	    tid, 
-	    aid,
-	    bid,
-	    trackname,
+	    track_id, 
+	    album_id,
+	    artist_id,
+	    track_name,
 	    genre
 	    )
       SELECT 
 	      mnatus.atid, 
-	      mnatus.aid,
-	      mnatus.bid,
+	      mnatus.album_id,
+	      mnatus.artist_id,
 	      mnatus.Title,
-	    CASE mnatus.GenreId
-	      WHEN 1 THEN 1					-- Alternative/Indie
-	      WHEN 2 THEN 2					-- Blues
-	      WHEN 3 THEN 3					-- Classical/Opera
-	      WHEN 22 THEN 3				
-	      WHEN mnatus.SubGenreId = 1024 THEN 3
-	      WHEN mnatus.SubGenreId = 1025 THEN 3
-	      WHEN mnatus.SubGenreId = 1013 THEN 3
-	      WHEN mnatus.SubGenreId = 1016 THEN 3
-	      WHEN mnatus.SubGenreId = 1017 THEN 3
-	      WHEN mnatus.SubGenreId = 1022 THEN 3
-	      WHEN mnatus.SubGenreId = 1039 THEN 3
-     	  WHEN mnatus.SubGenreId = 1040 THEN 3
-	      WHEN mnatus.SubGenreId = 1094 THEN 3
-	      WHEN mnatus.SubGenreId = 1090 THEN 3
-	      WHEN mnatus.SubGenreId = 1020 THEN 3
-     	  WHEN mnatus.SubGenreId = 1073 THEN 3
-	      WHEN 4 THEN 4					-- Country
-	      WHEN 5 THEN 5					-- Electronica/Dance
-	      WHEN mnatus.SubGenreId = 1081 THEN 5
-	      WHEN 6 THEN 6					-- Folk
-	      WHEN 7 THEN 7					-- Christian/Gospel
-	      WHEN mnatus.SubGenreId = 1028 THEN 7	
-	      WHEN mnatus.SubGenreId = 1049 THEN 7
-	      WHEN mnatus.SubGenreId = 1072 THEN 7
-	      WHEN mnatus.SubGenreId = 1099 THEN 7
-	      WHEN mnatus.SubGenreId = 1098 THEN 7
-	      WHEN mnatus.SubGenreId = 1100 THEN 7
-	      WHEN 8 THEN 8					-- Jazz
-	      WHEN mnatus.SubGenreId = 1079 THEN 8
-	      WHEN mnatus.SubGenreId = 1015 THEN 8
-	      WHEN 9 THEN 9					-- New Age
-	      WHEN 10 THEN 10				-- Pop
-	      WHEN mnatus.SubGenreId = 3862 THEN 10
-	      WHEN mnatus.SubGenreId = 1067 THEN 10
-	      WHEN mnatus.SubGenreId = 1032 THEN 10
-	      WHEN 11 THEN 11				-- Rap/Hip Hop
-	      WHEN 12 THEN 12				-- Rock
-	      WHEN mnatus.SubGenreId = 1068 THEN 12
-	      WHEN mnatus.SubGenreId = 1060 THEN 12
-	      WHEN mnatus.SubGenreId = 1002 THEN 12
-	      WHEN mnatus.SubGenreId = 1003 THEN 12
-	      WHEN mnatus.SubGenreId = 1004 THEN 12
-	      WHEN mnatus.SubGenreId = 1005 THEN 12
-	      WHEN mnatus.SubGenreId = 1006	THEN 12
-	      WHEN mnatus.SubGenreId = 1085 THEN 12
-	      WHEN mnatus.SubGenreId = 1086 THEN 12
-	      WHEN mnatus.SubGenreId = 1047 THEN 12
-	      WHEN mnatus.SubGenreId = 1007 THEN 12
-	      WHEN mnatus.SubGenreId = 1075 THEN 12
-	      WHEN 13 THEN 13				-- Soul/R&B
-	      WHEN mnatus.SubGenreId = 1030 THEN 13
-	      WHEN 14 THEN 14				-- Soundtracks
-	      WHEN mnatus.SubGenreId = 1043 THEN 14
-	      WHEN mnatus.SubGenreId = 1095 THEN 14
-	      WHEN mnatus.SubGenreId = 1008 THEN 14
-	      WHEN mnatus.SubGenreId = 1009 THEN 14
-	      WHEN mnatus.SubGenreId = 1027 THEN 14
-	      WHEN mnatus.SubGenreId = 1083 THEN 14
-	      WHEN mnatus.SubGenreId = 1078 THEN 14
-	      WHEN 20 THEN 14
-	      WHEN 15 THEN 17				-- Wolrd
-	      WHEN 16 THEN 15				-- Reggae/Ska
-	      WHEN 17 THEN 16				-- Latin
-	      WHEN mnatus.SubGenreId = 1029 THEN 16
-	      WHEN mnatus.SubGenreId = 1050 THEN 16
-	      WHEN mnatus.SubGenreId = 1051 THEN 16
-	      WHEN mnatus.SubGenreId = 1052 THEN 16
-	      WHEN mnatus.SubGenreId = 1053 THEN 16
-	      WHEN mnatus.SubGenreId = 1054 THEN 16
-	      WHEN mnatus.SubGenreId = 1055 THEN 16
-	      WHEN mnatus.SubGenreId = 1058 THEN 16
-	      WHEN mnatus.SubGenreId = 1059 THEN 16
-	      WHEN mnatus.SubGenreId = 1069 THEN 16
-	      WHEN mnatus.SubGenreId = 1070 THEN 16
-	      WHEN mnatus.SubGenreId = 1071 THEN 16
-	      WHEN mnatus.SubGenreId = 1076 THEN 16
-	      WHEN mnatus.SubGenreId = 1077 THEN 16
-	      WHEN mnatus.SubGenreId = 1048 THEN 16
-	      WHEN mnatus.SubGenreId = 1080 THEN 16
-	      WHEN mnatus.SubGenreId = 1082 THEN 16
-	      WHEN mnatus.SubGenreId = 1011 THEN 16
-	      WHEN 18 THEN 17				-- Other
-	      WHEN 19 THEN 17
-	      WHEN 21 THEN 17
-	      WHEN 23 THEN 17
-	      WHEN 25 THEN 17
-	      WHEN mnatus.SubGenreId = 1010 THEN 17
-	      WHEN mnatus.SubGenreId = 1012 THEN 17
-	      WHEN mnatus.SubGenreId = 1014 THEN 17
-	      WHEN mnatus.SubGenreId = 1018 THEN 17
-	      WHEN mnatus.SubGenreId = 1019 THEN 17
-	      WHEN mnatus.SubGenreId = 1021 THEN 17
-	      WHEN mnatus.SubGenreId = 1023 THEN 17
-	      WHEN mnatus.SubGenreId = 1031 THEN 17
-	      WHEN mnatus.SubGenreId = 1033 THEN 17
-	      WHEN mnatus.SubGenreId = 1034 THEN 17
-	      WHEN mnatus.SubGenreId = 1035 THEN 17
-	      WHEN mnatus.SubGenreId = 1036 THEN 17
-	      WHEN mnatus.SubGenreId = 1037 THEN 17
-	      WHEN mnatus.SubGenreId = 1038 THEN 17
-	      WHEN mnatus.SubGenreId = 1041 THEN 17
-	      WHEN mnatus.SubGenreId = 1042 THEN 17
-	      WHEN mnatus.SubGenreId = 1044 THEN 17
-	      WHEN mnatus.SubGenreId = 1045 THEN 17
-	      WHEN mnatus.SubGenreId = 1046 THEN 17
-	      WHEN mnatus.SubGenreId = 1056 THEN 17
-	      WHEN mnatus.SubGenreId = 1057 THEN 17
-	      WHEN mnatus.SubGenreId = 1061 THEN 17
-	      WHEN mnatus.SubGenreId = 1062 THEN 17
-	      WHEN mnatus.SubGenreId = 1064 THEN 17
-	      WHEN mnatus.SubGenreId = 1065 THEN 17
-	      WHEN mnatus.SubGenreId = 1066 THEN 17
-	      WHEN mnatus.SubGenreId = 1074 THEN 17
-	      WHEN mnatus.SubGenreId = 1084 THEN 17
-	      WHEN mnatus.SubGenreId = 1087 THEN 17
-	      WHEN mnatus.SubGenreId = 1088 THEN 17
-	      WHEN mnatus.SubGenreId = 1089 THEN 17
-	      WHEN mnatus.SubGenreId = 1091 THEN 17
-	      WHEN mnatus.SubGenreId = 1092 THEN 17
-	      WHEN mnatus.SubGenreId = 1093 THEN 17
-	      WHEN mnatus.SubGenreId = 1096 THEN 17
-	      WHEN mnatus.SubGenreId = 1097 THEN 17
-	      WHEN mnatus.SubGenreId = 1101 THEN 17
-	      WHEN mnatus.SubGenreId = 1102 THEN 17
-	      WHEN mnatus.SubGenreId = 1103 THEN 17
-	      WHEN mnatus.SubGenreId = 1104 THEN 17
-	      WHEN mnatus.SubGenreId = 1105 THEN 17
-	      WHEN mnatus.SubGenreId = 1106 THEN 17
-	      WHEN mnatus.SubGenreId = 1107 THEN 17
-	      WHEN mnatus.SubGenreId = 1108 THEN 17
-	      WHEN mnatus.SubGenreId = 3863 THEN 17
-	    ELSE
-	      17
-	    END
-        FROM 
-          mndigital_albumtrack_us mnatus
-        WHERE
-	    mnatus.CompTypeId = 3
-	    AND
-	    mnatus.timestamp = $this->last_timestamp
-          ON DUPLICATE KEY UPDATE 
-	    tid = mnatus.atid,
-	    aid = mnatus.aid,
-	    bid = mnatus.bid,
-	    trackname = mnatus.Title,
-	    genre = 
-	    CASE
-	      WHEN mnatus.GenreId = 1 THEN 1		-- Alternative/Indie
-	      WHEN mnatus.GenreId = 2 THEN 2		-- Blues
-	      WHEN mnatus.GenreId = 3 THEN 3		-- Classical/Opera
-	      WHEN mnatus.GenreId = 22 THEN 3				
-	      WHEN mnatus.SubGenreId = 1024 THEN 3
-	      WHEN mnatus.SubGenreId = 1025 THEN 3
-	      WHEN mnatus.SubGenreId = 1013 THEN 3
-	      WHEN mnatus.SubGenreId = 1016 THEN 3
-	      WHEN mnatus.SubGenreId = 1017 THEN 3
-	      WHEN mnatus.SubGenreId = 1022 THEN 3
-	      WHEN mnatus.SubGenreId = 1039 THEN 3
-     	  WHEN mnatus.SubGenreId = 1040 THEN 3
-	      WHEN mnatus.SubGenreId = 1094 THEN 3
-	      WHEN mnatus.SubGenreId = 1090 THEN 3
-	      WHEN mnatus.SubGenreId = 1020 THEN 3
-     	  WHEN mnatus.SubGenreId = 1073 THEN 3
-	      WHEN mnatus.GenreId = 4 THEN 4		-- Country
-	      WHEN mnatus.GenreId = 5 THEN 5		-- Electronica/Dance
-	      WHEN mnatus.SubGenreId = 1081 THEN 5
-	      WHEN mnatus.GenreId = 6 THEN 6		-- Folk
-	      WHEN mnatus.GenreId = 7 THEN 7		-- Christian/Gospel
-	      WHEN mnatus.SubGenreId = 1028 THEN 7	
-	      WHEN mnatus.SubGenreId = 1049 THEN 7
-	      WHEN mnatus.SubGenreId = 1072 THEN 7
-	      WHEN mnatus.SubGenreId = 1099 THEN 7
-	      WHEN mnatus.SubGenreId = 1098 THEN 7
-	      WHEN mnatus.SubGenreId = 1100 THEN 7
-	      WHEN mnatus.GenreId = 8 THEN 8		-- Jazz
-	      WHEN mnatus.SubGenreId = 1079 THEN 8
-	      WHEN mnatus.SubGenreId = 1015 THEN 8
-	      WHEN mnatus.GenreId = 9 THEN 9		-- New Age
-	      WHEN mnatus.GenreId = 10 THEN 10		-- Pop
-	      WHEN mnatus.SubGenreId = 3862 THEN 10
-	      WHEN mnatus.SubGenreId = 1067 THEN 10
-	      WHEN mnatus.SubGenreId = 1032 THEN 10
-	      WHEN mnatus.GenreId = 11 THEN 11		-- Rap/Hip Hop
-	      WHEN mnatus.GenreId = 12 THEN 12		-- Rock
-	      WHEN mnatus.SubGenreId = 1068 THEN 12
-	      WHEN mnatus.SubGenreId = 1060 THEN 12
-	      WHEN mnatus.SubGenreId = 1002 THEN 12
-	      WHEN mnatus.SubGenreId = 1003 THEN 12
-	      WHEN mnatus.SubGenreId = 1004 THEN 12
-	      WHEN mnatus.SubGenreId = 1005 THEN 12
-	      WHEN mnatus.SubGenreId = 1006	THEN 12
-	      WHEN mnatus.SubGenreId = 1085 THEN 12
-	      WHEN mnatus.SubGenreId = 1086 THEN 12
-	      WHEN mnatus.SubGenreId = 1047 THEN 12
-	      WHEN mnatus.SubGenreId = 1007 THEN 12
-	      WHEN mnatus.SubGenreId = 1075 THEN 12
-	      WHEN mnatus.GenreId = 13 THEN 13		-- Soul/R&B
-	      WHEN mnatus.SubGenreId = 1030 THEN 13
-	      WHEN mnatus.GenreId = 14 THEN 14		-- Soundtracks
-	      WHEN mnatus.SubGenreId = 1043 THEN 14
-	      WHEN mnatus.SubGenreId = 1095 THEN 14
-	      WHEN mnatus.SubGenreId = 1008 THEN 14
-	      WHEN mnatus.SubGenreId = 1009 THEN 14
-	      WHEN mnatus.SubGenreId = 1027 THEN 14
-	      WHEN mnatus.SubGenreId = 1083 THEN 14
-	      WHEN mnatus.SubGenreId = 1078 THEN 14
-	      WHEN mnatus.GenreId = 20 THEN 14
-	      WHEN mnatus.GenreId = 15 THEN 17		-- Wolrd
-	      WHEN mnatus.GenreId = 16 THEN 15		-- Reggae/Ska
-	      WHEN mnatus.GenreId = 17 THEN 16		-- Latin
-	      WHEN mnatus.SubGenreId = 1029 THEN 16
-	      WHEN mnatus.SubGenreId = 1050 THEN 16
-	      WHEN mnatus.SubGenreId = 1051 THEN 16
-	      WHEN mnatus.SubGenreId = 1052 THEN 16
-	      WHEN mnatus.SubGenreId = 1053 THEN 16
-	      WHEN mnatus.SubGenreId = 1054 THEN 16
-	      WHEN mnatus.SubGenreId = 1055 THEN 16
-	      WHEN mnatus.SubGenreId = 1058 THEN 16
-	      WHEN mnatus.SubGenreId = 1059 THEN 16
-	      WHEN mnatus.SubGenreId = 1069 THEN 16
-	      WHEN mnatus.SubGenreId = 1070 THEN 16
-	      WHEN mnatus.SubGenreId = 1071 THEN 16
-	      WHEN mnatus.SubGenreId = 1076 THEN 16
-	      WHEN mnatus.SubGenreId = 1077 THEN 16
-	      WHEN mnatus.SubGenreId = 1048 THEN 16
-	      WHEN mnatus.SubGenreId = 1080 THEN 16
-	      WHEN mnatus.SubGenreId = 1082 THEN 16
-	      WHEN mnatus.SubGenreId = 1011 THEN 16
-	      WHEN mnatus.GenreId = 18 THEN 17		-- Other
-	      WHEN mnatus.GenreId = 19 THEN 17
-	      WHEN mnatus.GenreId = 21 THEN 17
-	      WHEN mnatus.GenreId = 23 THEN 17
-	      WHEN mnatus.GenreId = 25 THEN 17
-	      WHEN mnatus.SubGenreId = 1010 THEN 17
-	      WHEN mnatus.SubGenreId = 1012 THEN 17
-	      WHEN mnatus.SubGenreId = 1014 THEN 17
-	      WHEN mnatus.SubGenreId = 1018 THEN 17
-	      WHEN mnatus.SubGenreId = 1019 THEN 17
-	      WHEN mnatus.SubGenreId = 1021 THEN 17
-	      WHEN mnatus.SubGenreId = 1023 THEN 17
-	      WHEN mnatus.SubGenreId = 1031 THEN 17
-	      WHEN mnatus.SubGenreId = 1033 THEN 17
-	      WHEN mnatus.SubGenreId = 1034 THEN 17
-	      WHEN mnatus.SubGenreId = 1035 THEN 17
-	      WHEN mnatus.SubGenreId = 1036 THEN 17
-	      WHEN mnatus.SubGenreId = 1037 THEN 17
-	      WHEN mnatus.SubGenreId = 1038 THEN 17
-	      WHEN mnatus.SubGenreId = 1041 THEN 17
-	      WHEN mnatus.SubGenreId = 1042 THEN 17
-	      WHEN mnatus.SubGenreId = 1044 THEN 17
-	      WHEN mnatus.SubGenreId = 1045 THEN 17
-	      WHEN mnatus.SubGenreId = 1046 THEN 17
-	      WHEN mnatus.SubGenreId = 1056 THEN 17
-	      WHEN mnatus.SubGenreId = 1057 THEN 17
-	      WHEN mnatus.SubGenreId = 1061 THEN 17
-	      WHEN mnatus.SubGenreId = 1062 THEN 17
-	      WHEN mnatus.SubGenreId = 1064 THEN 17
-	      WHEN mnatus.SubGenreId = 1065 THEN 17
-	      WHEN mnatus.SubGenreId = 1066 THEN 17
-	      WHEN mnatus.SubGenreId = 1074 THEN 17
-	      WHEN mnatus.SubGenreId = 1084 THEN 17
-	      WHEN mnatus.SubGenreId = 1087 THEN 17
-	      WHEN mnatus.SubGenreId = 1088 THEN 17
-	      WHEN mnatus.SubGenreId = 1089 THEN 17
-	      WHEN mnatus.SubGenreId = 1091 THEN 17
-	      WHEN mnatus.SubGenreId = 1092 THEN 17
-	      WHEN mnatus.SubGenreId = 1093 THEN 17
-	      WHEN mnatus.SubGenreId = 1096 THEN 17
-	      WHEN mnatus.SubGenreId = 1097 THEN 17
-	      WHEN mnatus.SubGenreId = 1101 THEN 17
-	      WHEN mnatus.SubGenreId = 1102 THEN 17
-	      WHEN mnatus.SubGenreId = 1103 THEN 17
-	      WHEN mnatus.SubGenreId = 1104 THEN 17
-	      WHEN mnatus.SubGenreId = 1105 THEN 17
-	      WHEN mnatus.SubGenreId = 1106 THEN 17
-	      WHEN mnatus.SubGenreId = 1107 THEN 17
-	      WHEN mnatus.SubGenreId = 1108 THEN 17
-	      WHEN mnatus.SubGenreId = 3863 THEN 17
-	    ELSE
-	      17
-	    END
+	      mnatus.GenreId
+      FROM 
+        mndigital_albumtrack_us mnatus
+      WHERE
+        mnatus.CompTypeId = 3
+      AND
+        mnatus.timestamp = $this->last_timestamp
+      ON DUPLICATE KEY UPDATE 
+        track_id = mnatus.atid,
+        album_id = mnatus.album_id,
+        artist_id = mnatus.artist_id,
+        track_name = mnatus.Title,
+        genre = mnatus.GenreId
       ";                
         
       $this->db->execute($sql);
@@ -963,7 +694,7 @@ class MediaNet_Import extends DataImport {
 
           $this->record_end_time();                
 
-          // unlink($_SERVER['DOCUMENT_ROOT'].'media_net/daily_incremental_files/'.$this->current_feed_name.'/'.$file['file_name']);
+          unlink($_SERVER['DOCUMENT_ROOT'].'media_net/daily_incremental_files/'.$this->current_feed_name.'/'.$file['file_name']);
         }                 
       }            
     }
