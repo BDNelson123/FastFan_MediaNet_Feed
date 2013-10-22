@@ -626,45 +626,49 @@ class MediaNet_Import extends DataImport {
       INSERT IGNORE tracks
       (
         track_id, 
-	album_id,
-	artist_id,
-	track_name,
-	album_number,
-	track_number
+        album_id,
+        artist_id,
+        track_name,
+        artist_name,
+        album_number,
+        track_number
       )
       SELECT 
-	mnatus.atid, 
-	mnatus.album_id,
-	mnatus.artist_id,
-	mnatus.Title,
-	CASE SPLIT_STR(mnatus.CompCode, '_', 2)
-	  WHEN 01 THEN 1
-	  WHEN 02 THEN 2
-	  WHEN 03 THEN 3
-	  WHEN 04 THEN 4
-	  WHEN 05 THEN 5
-	  WHEN 06 THEN 6
-	  WHEN 07 THEN 7
-	  WHEN 08 THEN 8
-	  WHEN 09 THEN 9
-	ELSE
-	  SPLIT_STR(CompCode, '_', 2)
-	END,
-	CASE SPLIT_STR(mnatus.CompCode, '_', 3)
-	  WHEN 01 THEN 1
-	  WHEN 02 THEN 2
-	  WHEN 03 THEN 3
-	  WHEN 04 THEN 4
-	  WHEN 05 THEN 5
-	  WHEN 06 THEN 6
-	  WHEN 07 THEN 7
-	  WHEN 08 THEN 8
-	  WHEN 09 THEN 9
-	ELSE
-	  SPLIT_STR(CompCode, '_', 3)
-	END
+        mnatus.atid, 
+        mnatus.album_id,
+        mnatus.artist_id,
+        mnatus.Title,
+        mnaus.artist_name,
+        CASE SPLIT_STR(mnatus.CompCode, '_', 2)
+          WHEN 01 THEN 1
+          WHEN 02 THEN 2
+          WHEN 03 THEN 3
+          WHEN 04 THEN 4
+          WHEN 05 THEN 5
+          WHEN 06 THEN 6
+          WHEN 07 THEN 7
+          WHEN 08 THEN 8
+          WHEN 09 THEN 9
+        ELSE
+          SPLIT_STR(CompCode, '_', 2)
+        END,
+        CASE SPLIT_STR(mnatus.CompCode, '_', 3)
+          WHEN 01 THEN 1
+          WHEN 02 THEN 2
+          WHEN 03 THEN 3
+          WHEN 04 THEN 4
+          WHEN 05 THEN 5
+          WHEN 06 THEN 6
+          WHEN 07 THEN 7
+          WHEN 08 THEN 8
+          WHEN 09 THEN 9
+        ELSE
+          SPLIT_STR(CompCode, '_', 3)
+        END
       FROM 
         mndigital_albumtrack_us mnatus
+      INNER JOIN 
+	      mndigital_artist_us mnaus on mnatus.artist_id = mnaus.artist_id
       WHERE
         mnatus.CompTypeId = 3
       AND
@@ -673,22 +677,23 @@ class MediaNet_Import extends DataImport {
         track_id = mnatus.atid,
         album_id = mnatus.album_id,
         artist_id = mnatus.artist_id,
+        artist_name = mnaus.artist_id,
         track_name = mnatus.Title,
-	album_number = 
-	CASE SPLIT_STR(mnatus.CompCode, '_', 2)
-	  WHEN 01 THEN 1
-	  WHEN 02 THEN 2
-	  WHEN 03 THEN 3
-	  WHEN 04 THEN 4
-	  WHEN 05 THEN 5
-	  WHEN 06 THEN 6
-	  WHEN 07 THEN 7
-	  WHEN 08 THEN 8
-	  WHEN 09 THEN 9
-	ELSE
-	  SPLIT_STR(mnatus.CompCode, '_', 2)
-	END,
-	track_number =
+        album_number = 
+        CASE SPLIT_STR(mnatus.CompCode, '_', 2)
+          WHEN 01 THEN 1
+          WHEN 02 THEN 2
+          WHEN 03 THEN 3
+          WHEN 04 THEN 4
+          WHEN 05 THEN 5
+          WHEN 06 THEN 6
+          WHEN 07 THEN 7
+          WHEN 08 THEN 8
+          WHEN 09 THEN 9
+        ELSE
+          SPLIT_STR(mnatus.CompCode, '_', 2)
+        END,
+        track_number =
         CASE SPLIT_STR(mnatus.CompCode, '_', 3)
           WHEN 01 THEN 1
           WHEN 02 THEN 2
@@ -705,6 +710,31 @@ class MediaNet_Import extends DataImport {
       ";                
         
       $this->db->execute($sql);
+
+      $sql2 = 
+      "
+      INSERT IGNORE tracks
+      (
+        track_id, 
+        artist_name
+      )
+      SELECT 
+        mnatus.atid, 
+        mnaus.Name
+      FROM 
+        mndigital_albumtrack_us mnatus
+      INNER JOIN 
+	      mndigital_artist_us mnaus on mnatus.artist_id = mnaus.artist_id
+      WHERE
+        mnatus.CompTypeId = 3
+      AND
+        mnatus.timestamp = $this->last_timestamp
+      ON DUPLICATE KEY UPDATE 
+        track_id = mnatus.atid,
+        artist_name = mnaus.Name
+      ";
+
+      $this->db->execute($sql2);
   }  
 
   // ----------------------- //
