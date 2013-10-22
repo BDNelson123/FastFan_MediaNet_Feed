@@ -629,7 +629,6 @@ class MediaNet_Import extends DataImport {
         album_id,
         artist_id,
         track_name,
-        artist_name,
         album_number,
         track_number
       )
@@ -638,7 +637,6 @@ class MediaNet_Import extends DataImport {
         mnatus.album_id,
         mnatus.artist_id,
         mnatus.Title,
-        mnaus.artist_name,
         CASE SPLIT_STR(mnatus.CompCode, '_', 2)
           WHEN 01 THEN 1
           WHEN 02 THEN 2
@@ -667,8 +665,6 @@ class MediaNet_Import extends DataImport {
         END
       FROM 
         mndigital_albumtrack_us mnatus
-      INNER JOIN 
-	      mndigital_artist_us mnaus on mnatus.artist_id = mnaus.artist_id
       WHERE
         mnatus.CompTypeId = 3
       AND
@@ -677,7 +673,6 @@ class MediaNet_Import extends DataImport {
         track_id = mnatus.atid,
         album_id = mnatus.album_id,
         artist_id = mnatus.artist_id,
-        artist_name = mnaus.artist_id,
         track_name = mnatus.Title,
         album_number = 
         CASE SPLIT_STR(mnatus.CompCode, '_', 2)
@@ -735,6 +730,31 @@ class MediaNet_Import extends DataImport {
       ";
 
       $this->db->execute($sql2);
+
+      $sql3 = 
+      "
+      INSERT IGNORE tracks
+      (
+        track_id, 
+        album_name
+      )
+      SELECT 
+        mnatus.atid, 
+        album.album_name
+      FROM 
+        mndigital_albumtrack_us mnatus
+      INNER JOIN 
+	      albums album on mnatus.album_id = album.album_id
+      WHERE
+        mnatus.CompTypeId = 3
+      AND
+        mnatus.timestamp = $this->last_timestamp
+      ON DUPLICATE KEY UPDATE 
+        track_id = mnatus.atid,
+        album_name = album.album_name
+      ";
+
+      $this->db->execute($sql3);
   }  
 
   // ----------------------- //
