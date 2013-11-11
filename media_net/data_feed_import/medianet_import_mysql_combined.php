@@ -561,14 +561,16 @@ class MediaNet_Import extends DataImport {
 	    album_id, 
 	    artist_id, 
 	    album_name,
-	    artist_name,
-	    releaseDate 
+	    artist_name, 
+	    album_advisory,
+	    releaseDate
 	    )
       SELECT 
 	      mnatus.atid, 
 	      mnatus.artist_id, 
 	      mnatus.title,
 	      mnaus.Name,
+        mnatus.ParentalAdvisory,
 	      mnatus.ReleaseDate
       FROM 
         mndigital_albumtrack_us mnatus
@@ -582,7 +584,9 @@ class MediaNet_Import extends DataImport {
 	      artist_id = mnatus.artist_id,
 	      album_name = mnatus.title,
 	      artist_name = mnaus.Name,
-	      releaseDate = mnatus.ReleaseDate
+        album_advisory = mnatus.ParentalAdvisory,
+	      releaseDate = mnatus.ReleaseDate,
+        elasticsearch_index = 0
       ";                
         
       $this->db->execute($sql);  
@@ -612,7 +616,8 @@ class MediaNet_Import extends DataImport {
     ON DUPLICATE KEY UPDATE 
       artist_name = mnaus.Name,
       ranking = mnaus.PopularityRanking,
-      highestRanking = IF((highestRanking < mnaus.PopularityRanking), highestRanking, mnaus.PopularityRanking)
+      highestRanking = IF((highestRanking < mnaus.PopularityRanking), highestRanking, mnaus.PopularityRanking),
+      elasticsearch_index = 0
     ";                
         
     $this->db->execute($sql);  
@@ -630,7 +635,9 @@ class MediaNet_Import extends DataImport {
         artist_id,
         track_name,
         album_number,
-        track_number
+        track_number,
+        track_advisory,
+        track_time
       )
       SELECT 
         mnatus.atid, 
@@ -662,7 +669,9 @@ class MediaNet_Import extends DataImport {
           WHEN 09 THEN 9
         ELSE
           SPLIT_STR(CompCode, '_', 3)
-        END
+        END,
+        mnatus.ParentalAdvisory,
+        mnatus.Duration
       FROM 
         mndigital_albumtrack_us mnatus
       WHERE
@@ -701,7 +710,10 @@ class MediaNet_Import extends DataImport {
           WHEN 09 THEN 9
         ELSE
           SPLIT_STR(CompCode, '_', 3)
-        END
+        END,
+        track_time = mnatus.Duration,
+        track_advisory = mnatus.ParentalAdvisory,
+        elasticsearch_index = 0
       ";                
         
       $this->db->execute($sql);
