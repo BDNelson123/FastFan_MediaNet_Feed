@@ -518,7 +518,7 @@ class MediaNet_Import extends DataImport {
 
     $this->db->execute($sql);
 
-    for ($i=1; $i<=25; $i++) {
+    for ($i=1; $i<=80; $i++) {
       $q = $api_request->get_artists(
         array(
           'page' => $i,
