@@ -557,35 +557,35 @@ class MediaNet_Import extends DataImport {
       $sql = 
       "
       INSERT IGNORE albums 
-	    (
-	    album_id, 
-	    artist_id, 
-	    album_name,
-	    artist_name, 
-	    album_advisory,
-	    releaseDate
-	    )
+      (
+        album_id, 
+        artist_id, 
+        album_name,
+        artist_name, 
+        album_advisory,
+        releaseDate
+      )
       SELECT 
-	      mnatus.atid, 
-	      mnatus.artist_id, 
-	      mnatus.title,
-	      mnaus.Name,
+	mnatus.atid, 
+	mnatus.artist_id, 
+	mnatus.title,
+	mnaus.Name,
         mnatus.ParentalAdvisory,
-	      mnatus.ReleaseDate
+	mnatus.ReleaseDate
       FROM 
         mndigital_albumtrack_us mnatus
       INNER JOIN 
-	      mndigital_artist_us mnaus on mnatus.artist_id = mnaus.artist_id
+	mndigital_artist_us mnaus on mnatus.artist_id = mnaus.artist_id
       WHERE
-	      mnatus.CompTypeId = 2
-	    AND
-	      mnatus.timestamp = $this->last_timestamp
+	mnatus.CompTypeId = 2
+	AND
+	mnatus.timestamp = $this->last_timestamp
       ON DUPLICATE KEY UPDATE 
-	      artist_id = mnatus.artist_id,
-	      album_name = mnatus.title,
-	      artist_name = mnaus.Name,
+	artist_id = mnatus.artist_id,
+	album_name = mnatus.title,
+	artist_name = mnaus.Name,
         album_advisory = mnatus.ParentalAdvisory,
-	      releaseDate = mnatus.ReleaseDate,
+	releaseDate = mnatus.ReleaseDate,
         elasticsearch_index = 0
       ";                
         
